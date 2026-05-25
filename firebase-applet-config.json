@@ -1,10 +1,9 @@
 {
-  "projectId": "vocal-psyche-4b34d",
-  "appId": "1:423009604740:web:f385586cc2a7f6c0505ed1",
-  "apiKey": "AIzaSyCUxwfcKAWzhwysZfSPzaEqq5NDwtk0W20",
-  "authDomain": "vocal-psyche-4b34d.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-dede2949-a9ea-453b-96d5-710f81d15f0e",
-  "storageBucket": "vocal-psyche-4b34d.firebasestorage.app",
-  "messagingSenderId": "423009604740",
+  "projectId": "cura-70e35",
+  "appId": "1:327563860143:web:6d92bf24c7a74c19b95c5a",
+  "apiKey": "AIzaSyDLbaxy5mnM79Wrm26FGBXRKEtN9rnTej8",
+  "authDomain": "cura-70e35.firebaseapp.com",
+  "storageBucket": "cura-70e35.firebasestorage.app",
+  "messagingSenderId": "327563860143",
   "measurementId": ""
 }
