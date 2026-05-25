@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Functions
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return false; } // No admin role for now
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'items', 'shippingDetails', 'total', 'status', 'createdAt'])
+        && data.userId == request.auth.uid
+        && data.items is list
+        && data.items.size() > 0
+        && data.items.size() <= 50
+        && data.shippingDetails is map
+        && data.shippingDetails.keys().hasAll(['name', 'address', 'city', 'zip'])
+        && data.total is number 
+        && data.total >= 0
+        && data.status is string
+        && (data.status in ['pending', 'processed', 'shipped', 'delivered'])
+        && ( ('prescriptionUrl' in data && data.prescriptionUrl is string && data.prescriptionUrl.size() <= 2048) || (!('prescriptionUrl' in data)) );
+    }
+
+    match /orders/{orderId} {
+      // Users can read their own orders
+      allow get: if isSignedIn() && isValidId(orderId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Users can create orders
+      allow create: if isSignedIn() 
+        && isValidId(orderId) 
+        && isValidOrder(incoming())
+        && incoming().createdAt == request.time;
+      
+      // We don't allow order updates or deletes in this simple app
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "An order placed by a user for medications.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "ID of the user who placed the order" },
+        "items": { 
+          "type": "array",
+          "items": { "$ref": "#/entities/OrderItem" }
+        },
+        "shippingDetails": { "$ref": "#/entities/ShippingDetails" },
+        "prescriptionUrl": { "type": "string" },
+        "total": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "processed", "shipped", "delivered"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "items", "shippingDetails", "total", "status", "createdAt"]
+    },
+    "OrderItem": {
+      "title": "OrderItem",
+      "description": "Item in an order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "quantity": { "type": "number" }
+      },
+      "required": ["id", "quantity"]
+    },
+    "ShippingDetails": {
+      "title": "ShippingDetails",
+      "description": "Shipping address and details",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "zip": { "type": "string" }
+      },
+      "required": ["name", "address", "city", "zip"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": "#/entities/Order",
+      "description": "Stores user orders."
+    }
+  }
+}

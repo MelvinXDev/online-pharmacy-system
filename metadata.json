@@ -1,0 +1,6 @@
+{
+  "name": "Online Pharmacy System",
+  "description": "An online pharmacy interface featuring drug listings, prescription upload, and delivery options.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
