@@ -10,18 +10,18 @@ import { collection, addDoc, serverTimestamp, onSnapshot } from 'firebase/firest
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const DRUGS = [
-  { id: 'd1', name: 'Amoxicillin', description: 'Antibiotic used to treat a number of bacterial infections including middle ear infections, strep throat, pneumonia, skin infections, and urinary tract infections.', category: 'Antibiotics', price: 4500, requiresPrescription: true, imageUrl: '/images/amoxicillin.jpg' },
-  { id: 'd2', name: 'Ibuprofen', description: 'Nonsteroidal anti-inflammatory drug (NSAID) used for treating pain, fever, and inflammation. Common uses include menstrual cramps, migraines, and rheumatoid arthritis.', category: 'Pain Relief', price: 1200, requiresPrescription: false, imageUrl: '/images/ibuprofen.jpg' },
-  { id: 'd3', name: 'Lisinopril', description: 'Medication of the angiotensin-converting enzyme (ACE) inhibitor class used primarily in treatment of high blood pressure, heart failure, and after heart attacks.', category: 'Cardiovascular', price: 3500, requiresPrescription: true, imageUrl: '/images/lisinopril.jpg' },
-  { id: 'd4', name: 'Sertraline', description: 'Antidepressant of the selective serotonin reuptake inhibitor (SSRI) class. Primarily used to treat major depressive disorder and obsessive-compulsive disorder.', category: 'Mental Health', price: 6500, requiresPrescription: true, imageUrl: '/images/sertraline.jpg' },
-  { id: 'd5', name: 'Loratadine', description: 'Antihistamine medication used to treat allergies. This includes allergic rhinitis (hay fever) and hives. Non-drowsy formulation.', category: 'Allergy', price: 2000, requiresPrescription: false, imageUrl: '/images/loratadine.jpg' },
-  { id: 'd6', name: 'Metformin', description: 'First-line medication for the treatment of type 2 diabetes, particularly in people who are overweight. It is also used in the treatment of polycystic ovary syndrome.', category: 'Diabetes', price: 2800, requiresPrescription: true, imageUrl: '/images/metformin.jpg' },
-  { id: 'd7', name: 'Vitamin C', description: 'Vitamin C supplement for immune support and overall health wellness.', category: 'Vitamins & Supplements', price: 1500, requiresPrescription: false, imageUrl: '' },
-  { id: 'd8', name: 'Omeprazole', description: 'Used to treat certain stomach and esophagus problems (such as acid reflux, ulcers).', category: 'Digestive Health', price: 2200, requiresPrescription: false, imageUrl: '' },
-  { id: 'd9', name: 'Atorvastatin', description: 'Used together with a proper diet to lower bad cholesterol and fats and raise good cholesterol in the blood.', category: 'Cardiovascular', price: 3000, requiresPrescription: true, imageUrl: '' },
-  { id: 'd10', name: 'Albuterol', description: 'Used to prevent and treat wheezing and shortness of breath caused by breathing problems (such as asthma).', category: 'Respiratory', price: 4100, requiresPrescription: true, imageUrl: '' },
-  { id: 'd11', name: 'Paracetamol', description: 'Common painkiller used to treat aches and pain. It can also be used to reduce a high temperature.', category: 'Pain Relief', price: 800, requiresPrescription: false, imageUrl: '' },
-  { id: 'd12', name: 'Cetirizine', description: 'Antihistamine used to relieve allergy symptoms such as watery eyes, runny nose, itching eyes/nose, sneezing.', category: 'Allergy', price: 1500, requiresPrescription: false, imageUrl: '' },
+  { id: 'd1', name: 'Amoxicillin', description: 'Antibiotic used to treat a number of bacterial infections including middle ear infections, strep throat, pneumonia, skin infections, and urinary tract infections.', category: 'Antibiotics', price: 4500, requiresPrescription: true, imageUrl: '/images/amoxicillin.jpeg' },
+  { id: 'd2', name: 'Ibuprofen', description: 'Nonsteroidal anti-inflammatory drug (NSAID) used for treating pain, fever, and inflammation. Common uses include menstrual cramps, migraines, and rheumatoid arthritis.', category: 'Pain Relief', price: 1200, requiresPrescription: false, imageUrl: '/images/ibuprofen.jpeg' },
+  { id: 'd3', name: 'Lisinopril', description: 'Medication of the angiotensin-converting enzyme (ACE) inhibitor class used primarily in treatment of high blood pressure, heart failure, and after heart attacks.', category: 'Cardiovascular', price: 3500, requiresPrescription: true, imageUrl: '/images/lisinopril.jpeg' },
+  { id: 'd4', name: 'Sertraline', description: 'Antidepressant of the selective serotonin reuptake inhibitor (SSRI) class. Primarily used to treat major depressive disorder and obsessive-compulsive disorder.', category: 'Mental Health', price: 6500, requiresPrescription: true, imageUrl: '/images/sertraline.webp' },
+  { id: 'd5', name: 'Loratadine', description: 'Antihistamine medication used to treat allergies. This includes allergic rhinitis (hay fever) and hives. Non-drowsy formulation.', category: 'Allergy', price: 2000, requiresPrescription: false, imageUrl: '/images/loratadine.jpeg' },
+  { id: 'd6', name: 'Metformin', description: 'First-line medication for the treatment of type 2 diabetes, particularly in people who are overweight. It is also used in the treatment of polycystic ovary syndrome.', category: 'Diabetes', price: 2800, requiresPrescription: true, imageUrl: '/images/metformin.jpeg' },
+  { id: 'd7', name: 'Vitamin C', description: 'Vitamin C supplement for immune support and overall health wellness.', category: 'Vitamins & Supplements', price: 1500, requiresPrescription: false, imageUrl: '/images/vitamin_c.png' },
+  { id: 'd8', name: 'Omeprazole', description: 'Used to treat certain stomach and esophagus problems (such as acid reflux, ulcers).', category: 'Digestive Health', price: 2200, requiresPrescription: false, imageUrl: '/images/omeprazole.png' },
+  { id: 'd9', name: 'Atorvastatin', description: 'Used together with a proper diet to lower bad cholesterol and fats and raise good cholesterol in the blood.', category: 'Cardiovascular', price: 3000, requiresPrescription: true, imageUrl: '/images/atorvastatin.jpeg' },
+  { id: 'd10', name: 'Albuterol', description: 'Used to prevent and treat wheezing and shortness of breath caused by breathing problems (such as asthma).', category: 'Respiratory', price: 4100, requiresPrescription: true, imageUrl: '/images/albuterol.png' },
+  { id: 'd11', name: 'Paracetamol', description: 'Common painkiller used to treat aches and pain. It can also be used to reduce a high temperature.', category: 'Pain Relief', price: 800, requiresPrescription: false, imageUrl: '/images/paracetamol.jpeg' },
+  { id: 'd12', name: 'Cetirizine', description: 'Antihistamine used to relieve allergy symptoms such as watery eyes, runny nose, itching eyes/nose, sneezing.', category: 'Allergy', price: 1500, requiresPrescription: false, imageUrl: '/images/cetirizine.jpeg' },
 ];
 
 const CATEGORIES = ['All', 'Antibiotics', 'Pain Relief', 'Cardiovascular', 'Mental Health', 'Allergy', 'Diabetes', 'Vitamins & Supplements', 'Digestive Health', 'Respiratory'];
@@ -503,7 +503,7 @@ export default function PharmacyPage() {
                     <div key={drug.id} className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm flex flex-col transition-all hover:shadow-md hover:border-emerald-200">
                       <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden bg-slate-100">
                         <Image
-                              src={drug.imageUrl}
+                              src={drug.imageUrl || '/images/paracetamol.jpeg'}
                               alt={drug.name}
                               fill
                               referrerPolicy="no-referrer"
