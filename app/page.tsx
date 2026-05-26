@@ -502,12 +502,12 @@ export default function PharmacyPage() {
                   {filteredDrugs.map((drug, index) => (
                     <div key={drug.id} className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm flex flex-col transition-all hover:shadow-md hover:border-emerald-200">
                       <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden bg-slate-100">
-                        <Image 
-                          src={`https://picsum.photos/seed/${drug.id}/400/400`} 
-                          alt={drug.name} 
-                          fill 
-                          referrerPolicy="no-referrer" 
-                          className="object-cover"
+                        <Image
+                              src={drug.imageUrl}
+                              alt={drug.name}
+                              fill
+                              referrerPolicy="no-referrer"
+                              className="object-cover"
                         />
                       </div>
                       <div className="flex justify-between items-start mb-4">
