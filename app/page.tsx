@@ -170,10 +170,18 @@ export default function PharmacyPage() {
 
     setIsSubmitting(true);
     try {
+      const timeout = (ms: number, message: string) => 
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error(message)), ms)
+        );
+
       let prescriptionUrl = '';
       if (checkoutFile) {
         const storageRef = ref(storage, `prescriptions/${user.uid}/${Date.now()}_${checkoutFile.name}`);
-        const uploadResult = await uploadBytes(storageRef, checkoutFile);
+        const uploadResult = await Promise.race([
+          uploadBytes(storageRef, checkoutFile),
+          timeout(15000, "Prescription upload timed out. Please check your internet connection or Firebase Storage rules.")
+        ]);
         prescriptionUrl = await getDownloadURL(uploadResult.ref);
       }
 
@@ -200,13 +208,16 @@ export default function PharmacyPage() {
         orderData.prescriptionUrl = prescriptionUrl;
       }
 
-      await addDoc(collection(db, 'orders'), orderData);
+      await Promise.race([
+        addDoc(collection(db, 'orders'), orderData),
+        timeout(15000, "Order creation timed out. If you recently updated .env.local, please restart your development server to clear the cached configuration. Otherwise, verify that your Firestore database is active.")
+      ]);
       
       setOrderPlaced(true);
       setCart([]);
       setCheckoutFile(null);
     } catch (err: any) {
-      console.error(err);
+      console.error("Order Error:", err);
       alert("Failed to place order: " + err.message);
     } finally {
       setIsSubmitting(false);
