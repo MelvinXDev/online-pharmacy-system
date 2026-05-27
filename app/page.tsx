@@ -170,7 +170,23 @@ export default function PharmacyPage() {
 
     setIsSubmitting(true);
     try {
-      const orderData = {
+      let prescriptionUrl = '';
+      if (checkoutFile) {
+        const storageRef = ref(storage, `prescriptions/${user.uid}/${Date.now()}_${checkoutFile.name}`);
+        const uploadResult = await uploadBytes(storageRef, checkoutFile);
+        prescriptionUrl = await getDownloadURL(uploadResult.ref);
+      }
+
+      const orderData: {
+        userId: string;
+        items: { id: string; quantity: number }[];
+        shippingDetails: typeof deliveryDetails;
+        paymentMethod: typeof paymentMethod;
+        total: number;
+        status: string;
+        createdAt: any;
+        prescriptionUrl?: string;
+      } = {
         userId: user.uid,
         items: cart.map(item => ({ id: item.id, quantity: item.quantity })),
         shippingDetails: deliveryDetails,
@@ -179,6 +195,10 @@ export default function PharmacyPage() {
         status: 'pending',
         createdAt: serverTimestamp()
       };
+
+      if (prescriptionUrl) {
+        orderData.prescriptionUrl = prescriptionUrl;
+      }
 
       await addDoc(collection(db, 'orders'), orderData);
       
