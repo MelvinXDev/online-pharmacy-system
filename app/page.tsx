@@ -32,7 +32,7 @@ export default function PharmacyPage() {
   const [activeTab, setActiveTab] = useState<'catalog' | 'checkout' | 'vendor'>('catalog');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-  
+
   // Checkout Prescription State
   const [checkoutFile, setCheckoutFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,7 +41,7 @@ export default function PharmacyPage() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scannerFile, setScannerFile] = useState<File | null>(null);
   const [isAnalyzingRx, setIsAnalyzingRx] = useState(false);
-  const [rxRecommendations, setRxRecommendations] = useState<{name: string, reason: string, quantity: string}[]>([]);
+  const [rxRecommendations, setRxRecommendations] = useState<{ name: string, reason: string, quantity: string }[]>([]);
   const scannerInputRef = useRef<HTMLInputElement>(null);
 
   // Delivery & Payment State
@@ -104,7 +104,7 @@ export default function PharmacyPage() {
 
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
-  const filteredDrugs = drugs.filter(d => 
+  const filteredDrugs = drugs.filter(d =>
     (activeCategory === 'All' || d.category === activeCategory) &&
     (d.name.toLowerCase().includes(searchQuery.toLowerCase()) || d.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -170,18 +170,10 @@ export default function PharmacyPage() {
 
     setIsSubmitting(true);
     try {
-      const timeout = (ms: number, message: string) => 
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error(message)), ms)
-        );
-
       let prescriptionUrl = '';
       if (checkoutFile) {
         const storageRef = ref(storage, `prescriptions/${user.uid}/${Date.now()}_${checkoutFile.name}`);
-        const uploadResult = await Promise.race([
-          uploadBytes(storageRef, checkoutFile),
-          timeout(15000, "Prescription upload timed out. Please check your internet connection or Firebase Storage rules.")
-        ]);
+        const uploadResult = await uploadBytes(storageRef, checkoutFile);
         prescriptionUrl = await getDownloadURL(uploadResult.ref);
       }
 
@@ -212,13 +204,13 @@ export default function PharmacyPage() {
         addDoc(collection(db, 'orders'), orderData),
         timeout(15000, "Order creation timed out. If you recently updated .env.local, please restart your development server to clear the cached configuration. Otherwise, verify that your Firestore database is active.")
       ]);
-      
+
       setOrderPlaced(true);
       setCart([]);
       setCheckoutFile(null);
     } catch (err: any) {
       console.error("Order Error:", err);
-      alert("Failed to place order: " + err.message);
+      alert("Failed to place order. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -231,7 +223,7 @@ export default function PharmacyPage() {
       await signIn();
       return;
     }
-    
+
     setIsAddingProduct(true);
     try {
       await addDoc(collection(db, 'products'), {
@@ -273,26 +265,26 @@ export default function PharmacyPage() {
 
           <div className="flex items-center md:items-end justify-between md:justify-end gap-6 md:pb-1 w-full md:w-auto">
             <nav className="flex items-center gap-6 overflow-x-auto no-scrollbar">
-              <button 
-                onClick={() => setActiveTab('catalog')} 
+              <button
+                onClick={() => setActiveTab('catalog')}
                 className={`text-sm md:text-lg whitespace-nowrap transition-colors pb-1 ${activeTab === 'catalog' ? 'font-bold border-b-2 border-black text-black' : 'font-medium text-slate-400 hover:text-black'}`}
               >
                 CATALOG
               </button>
-              <button 
-                onClick={() => setActiveTab('checkout')} 
+              <button
+                onClick={() => setActiveTab('checkout')}
                 className={`text-sm md:text-lg whitespace-nowrap transition-colors pb-1 flex items-center gap-1 ${activeTab === 'checkout' ? 'font-bold border-b-2 border-black text-black' : 'font-medium text-slate-400 hover:text-black'}`}
               >
                 CHECKOUT
               </button>
-              <button 
-                onClick={() => setActiveTab('vendor')} 
+              <button
+                onClick={() => setActiveTab('vendor')}
                 className={`text-sm md:text-lg whitespace-nowrap transition-colors pb-1 flex items-center gap-1 ${activeTab === 'vendor' ? 'font-bold border-b-2 border-black text-black' : 'font-medium text-slate-400 hover:text-black'}`}
               >
                 VENDOR DASHBOARD
               </button>
             </nav>
-            
+
             <div className="relative group cursor-pointer pb-1 md:pb-0" onClick={() => setActiveTab('checkout')}>
               <ShoppingCart className="w-6 h-6 md:w-8 md:h-8 text-black transition-colors" />
               {cartItemCount > 0 && (
@@ -301,9 +293,9 @@ export default function PharmacyPage() {
                 </span>
               )}
             </div>
-            
+
             <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
-            
+
             <div className="flex items-center gap-4">
               {user ? (
                 <div className="flex items-center gap-3">
@@ -320,7 +312,7 @@ export default function PharmacyPage() {
                   </div>
                 </div>
               ) : (
-                <button 
+                <button
                   onClick={signIn}
                   className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-full font-bold text-xs uppercase tracking-widest transition-colors"
                 >
@@ -335,7 +327,7 @@ export default function PharmacyPage() {
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {orderPlaced ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center py-20 text-center max-w-2xl mx-auto"
@@ -344,12 +336,15 @@ export default function PharmacyPage() {
               <CheckCircle className="w-16 h-16" />
             </div>
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-none mb-6">
-              ORDER <br className="md:hidden"/> <span className="text-emerald-500">CONFIRMED.</span>
+              ORDER <br className="md:hidden" /> <span className="text-emerald-500">CONFIRMED.</span>
             </h2>
-            <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed mb-10">
+            <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed mb-4">
+              Thank you for shopping with us! Your order has been successfully placed.
+            </p>
+            <p className="text-sm md:text-base text-slate-400 font-medium leading-relaxed mb-10">
               Your prescription and medicines have been submitted. Our team is processing your order for immediate dispatch.
             </p>
-            <button 
+            <button
               onClick={() => { setOrderPlaced(false); setActiveTab('catalog'); }}
               className="px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:bg-emerald-500 transition-colors"
             >
@@ -370,7 +365,7 @@ export default function PharmacyPage() {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div className="space-y-2">
                     <h2 className="text-3xl md:text-5xl font-black leading-[0.9] tracking-tight uppercase">
-                      MEDICATIONS <br/>
+                      MEDICATIONS <br />
                       <span className="text-emerald-500">IN STOCK.</span>
                     </h2>
                     <p className="text-base md:text-lg text-slate-500 max-w-md font-medium leading-relaxed">
@@ -378,7 +373,7 @@ export default function PharmacyPage() {
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                    <button 
+                    <button
                       onClick={() => setIsScannerOpen(true)}
                       className="w-full sm:w-auto px-6 py-4 bg-emerald-100 text-emerald-800 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-emerald-200 transition-colors flex items-center justify-center gap-2 border-2 border-emerald-200"
                     >
@@ -401,7 +396,7 @@ export default function PharmacyPage() {
                 </div>
 
                 {isScannerOpen && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -423,15 +418,15 @@ export default function PharmacyPage() {
                     </div>
 
                     {!scannerFile ? (
-                      <div 
+                      <div
                         className="border-4 border-dashed border-emerald-200 bg-emerald-50 hover:bg-emerald-100 rounded-3xl p-8 text-center transition-colors cursor-pointer"
                         onClick={() => scannerInputRef.current?.click()}
                       >
-                        <input 
-                          type="file" 
-                          ref={scannerInputRef} 
-                          className="hidden" 
-                          accept="image/*,.pdf" 
+                        <input
+                          type="file"
+                          ref={scannerInputRef}
+                          className="hidden"
+                          accept="image/*,.pdf"
                           onChange={handleScannerFileChange}
                         />
                         <div className="flex flex-col items-center">
@@ -450,7 +445,7 @@ export default function PharmacyPage() {
                             <FileText className="w-6 h-6 text-emerald-500" />
                             <span className="font-bold text-slate-900">{scannerFile.name}</span>
                           </div>
-                          <button 
+                          <button
                             onClick={() => { setScannerFile(null); setRxRecommendations([]); }}
                             className="text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-red-500"
                           >
@@ -469,11 +464,11 @@ export default function PharmacyPage() {
                             <h4 className="font-bold uppercase tracking-widest text-sm text-slate-500 border-b-2 border-slate-100 pb-2">Analysis Results</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               {rxRecommendations.map((rec, i) => {
-                                const foundDrug = drugs.find(d => 
-                                  d.name.toLowerCase().includes(rec.name.toLowerCase()) || 
+                                const foundDrug = drugs.find(d =>
+                                  d.name.toLowerCase().includes(rec.name.toLowerCase()) ||
                                   rec.name.toLowerCase().includes(d.name.toLowerCase())
                                 );
-                                
+
                                 return (
                                   <div key={i} className={`p-4 rounded-2xl border-2 ${foundDrug ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
                                     <div className="flex justify-between items-start mb-2">
@@ -481,13 +476,13 @@ export default function PharmacyPage() {
                                       {rec.quantity && <span className="text-[10px] font-bold bg-white px-2 py-1 rounded-full uppercase tracking-widest">{rec.quantity}</span>}
                                     </div>
                                     <p className="text-sm font-medium text-slate-600 mb-4">{rec.reason}</p>
-                                    
+
                                     {foundDrug ? (
                                       <div className="flex items-center justify-between pt-3 border-t border-emerald-200/50">
                                         <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 uppercase">
                                           <CheckCircle className="w-4 h-4" /> IN STOCK
                                         </div>
-                                        <button 
+                                        <button
                                           onClick={() => {
                                             addToCart(foundDrug.id);
                                           }}
@@ -519,7 +514,7 @@ export default function PharmacyPage() {
 
                 <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-2 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {CATEGORIES.map(category => (
-                    <button 
+                    <button
                       key={category}
                       onClick={() => setActiveCategory(category)}
                       className={`whitespace-nowrap px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest transition-colors ${activeCategory === category ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
@@ -534,11 +529,11 @@ export default function PharmacyPage() {
                     <div key={drug.id} className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm flex flex-col transition-all hover:shadow-md hover:border-emerald-200">
                       <div className="relative w-full h-48 mb-6 rounded-2xl overflow-hidden bg-slate-100">
                         <Image
-                              src={drug.imageUrl || '/images/paracetamol.jpeg'}
-                              alt={drug.name}
-                              fill
-                              referrerPolicy="no-referrer"
-                              className="object-cover"
+                          src={drug.imageUrl || '/images/paracetamol.jpeg'}
+                          alt={drug.name}
+                          fill
+                          referrerPolicy="no-referrer"
+                          className="object-cover"
                         />
                       </div>
                       <div className="flex justify-between items-start mb-4">
@@ -560,7 +555,7 @@ export default function PharmacyPage() {
                       </p>
                       <div className="flex flex-row items-center justify-between gap-3 border-t border-slate-100 pt-5 mt-auto flex-wrap">
                         <span className="text-2xl lg:text-3xl font-black text-emerald-600 tracking-tighter shrink-0">₦{drug.price.toLocaleString()}</span>
-                        
+
                         {cart.find(item => item.id === drug.id) ? (
                           <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-full border-2 border-slate-200">
                             <button onClick={() => removeFromCart(drug.id)} className="p-1.5 hover:bg-slate-200 rounded-full text-slate-900 transition-colors">
@@ -572,7 +567,7 @@ export default function PharmacyPage() {
                             </button>
                           </div>
                         ) : (
-                          <button 
+                          <button
                             onClick={() => addToCart(drug.id)}
                             className="px-5 sm:px-6 py-2.5 sm:py-3 bg-slate-900 text-white rounded-full font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-emerald-500 transition-colors whitespace-nowrap"
                           >
@@ -583,7 +578,7 @@ export default function PharmacyPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 {filteredDrugs.length === 0 && (
                   <div className="text-center py-16 px-4 border-2 border-dashed border-slate-300 rounded-3xl">
                     <Search className="h-12 w-12 text-slate-300 mx-auto mb-4" />
@@ -606,7 +601,7 @@ export default function PharmacyPage() {
                 <div className="lg:col-span-7 space-y-8 flex flex-col">
                   <div className="space-y-4">
                     <h2 className="text-3xl md:text-5xl font-black leading-[0.9] tracking-tight uppercase">
-                      SECURE <br/>
+                      SECURE <br />
                       <span className="text-emerald-500">CHECKOUT.</span>
                     </h2>
                     <p className="text-base md:text-lg text-slate-500 max-w-md font-medium leading-relaxed">
@@ -626,18 +621,18 @@ export default function PharmacyPage() {
                       </div>
                     </div>
 
-                    <div 
+                    <div
                       className={`border-4 border-dashed rounded-3xl p-6 md:p-10 text-center transition-colors cursor-pointer ${checkoutFile ? 'border-emerald-500 bg-emerald-50' : (rxRequired ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-slate-200 hover:border-slate-300 bg-slate-50')}`}
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        className="hidden" 
-                        accept="image/*,.pdf" 
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*,.pdf"
                         onChange={handleCheckoutFileChange}
                       />
-                      
+
                       {checkoutFile ? (
                         <div className="flex flex-col items-center">
                           <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mb-4">
@@ -645,7 +640,7 @@ export default function PharmacyPage() {
                           </div>
                           <span className="text-xl font-bold text-slate-900 tracking-tight">{checkoutFile.name}</span>
                           <span className="text-sm font-bold text-emerald-600 mt-1 uppercase tracking-widest">{(checkoutFile.size / 1024 / 1024).toFixed(2)} MB</span>
-                          <button 
+                          <button
                             className="mt-6 px-6 py-2 border-2 border-slate-900 text-slate-900 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-colors"
                             onClick={(e) => { e.stopPropagation(); setCheckoutFile(null); }}
                           >
@@ -672,49 +667,49 @@ export default function PharmacyPage() {
                       </div>
                       <h4 className="text-xl font-bold uppercase tracking-tight">Shipping Info</h4>
                     </div>
-                    
+
                     <div className="space-y-5">
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Full Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
                           value={deliveryDetails.name}
-                          onChange={(e) => setDeliveryDetails({...deliveryDetails, name: e.target.value})}
+                          onChange={(e) => setDeliveryDetails({ ...deliveryDetails, name: e.target.value })}
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Street Address</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
                           value={deliveryDetails.address}
-                          onChange={(e) => setDeliveryDetails({...deliveryDetails, address: e.target.value})}
+                          onChange={(e) => setDeliveryDetails({ ...deliveryDetails, address: e.target.value })}
                         />
                       </div>
-                      
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
                           <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">City</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
                             value={deliveryDetails.city}
-                            onChange={(e) => setDeliveryDetails({...deliveryDetails, city: e.target.value})}
+                            onChange={(e) => setDeliveryDetails({ ...deliveryDetails, city: e.target.value })}
                           />
                         </div>
                         <div>
                           <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">ZIP Code</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             required
                             className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
                             value={deliveryDetails.zip}
-                            onChange={(e) => setDeliveryDetails({...deliveryDetails, zip: e.target.value})}
+                            onChange={(e) => setDeliveryDetails({ ...deliveryDetails, zip: e.target.value })}
                           />
                         </div>
                       </div>
@@ -728,7 +723,7 @@ export default function PharmacyPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setPaymentMethod('card')}
                         className={`p-4 rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-colors ${paymentMethod === 'card' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-500 hover:border-emerald-200'}`}
@@ -736,7 +731,7 @@ export default function PharmacyPage() {
                         <CreditCard className={`w-8 h-8 ${paymentMethod === 'card' ? 'text-emerald-500' : 'text-slate-400'}`} />
                         <span className="text-xs font-bold uppercase tracking-widest">Card</span>
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setPaymentMethod('transfer')}
                         className={`p-4 rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-colors ${paymentMethod === 'transfer' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-500 hover:border-emerald-200'}`}
@@ -744,7 +739,7 @@ export default function PharmacyPage() {
                         <Banknote className={`w-8 h-8 ${paymentMethod === 'transfer' ? 'text-emerald-500' : 'text-slate-400'}`} />
                         <span className="text-xs font-bold uppercase tracking-widest">Transfer</span>
                       </button>
-                      <button 
+                      <button
                         type="button"
                         onClick={() => setPaymentMethod('crypto')}
                         className={`p-4 rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-colors ${paymentMethod === 'crypto' ? 'border-emerald-500 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-500 hover:border-emerald-200'}`}
@@ -764,7 +759,7 @@ export default function PharmacyPage() {
                       </div>
                       <h4 className="text-xl font-bold uppercase tracking-tight italic">Order Summary</h4>
                     </div>
-                    
+
                     <div className="space-y-4 mb-8">
                       {cart.length === 0 ? (
                         <p className="text-sm text-slate-400 font-medium italic py-4">Your bag is empty.</p>
@@ -784,7 +779,7 @@ export default function PharmacyPage() {
                         })
                       )}
                     </div>
-                    
+
                     {checkoutFile && (
                       <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center gap-4 mb-8">
                         <FileText className="w-6 h-6 text-emerald-400" />
@@ -794,7 +789,7 @@ export default function PharmacyPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="space-y-3 mb-8">
                       <div className="flex justify-between text-sm font-bold text-slate-400">
                         <span className="uppercase">Subtotal</span>
@@ -809,8 +804,8 @@ export default function PharmacyPage() {
                         <span className="text-3xl md:text-4xl font-black text-white leading-none tracking-tighter">₦{(getCartTotal() + (getCartTotal() > 0 ? 1500 : 0)).toLocaleString()}</span>
                       </div>
                     </div>
-                    
-                    <button 
+
+                    <button
                       type="submit"
                       form="checkout-form"
                       className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -845,100 +840,100 @@ export default function PharmacyPage() {
               >
                 <div className="space-y-4 mb-8 text-center">
                   <h2 className="text-3xl md:text-5xl font-black leading-[0.9] tracking-tight uppercase">
-                    VENDOR <br/>
+                    VENDOR <br />
                     <span className="text-emerald-500">DASHBOARD.</span>
                   </h2>
                   <p className="text-base md:text-lg text-slate-500 font-medium leading-relaxed">
                     Add pharmacy products to the marketplace.
                   </p>
                 </div>
-                
-                {!user ? (
-                   <div className="bg-white p-12 text-center rounded-3xl border-2 border-slate-100 shadow-sm">
-                      <h3 className="text-2xl font-black uppercase tracking-tight mb-4 text-emerald-900">Partner with Us</h3>
-                      <p className="text-slate-500 font-medium mb-8">Sign in with your vendor account to add products.</p>
-                      <button 
-                        onClick={signIn}
-                        className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-emerald-500 transition-colors"
-                      >
-                        Sign In as Vendor
-                      </button>
-                   </div>
-                ) : (
-                   <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border-2 border-slate-100 flex-1 flex flex-col justify-center space-y-6">
-                     <form onSubmit={handleAddProduct} className="space-y-5">
-                       <div>
-                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Product Name</label>
-                         <input 
-                           type="text" 
-                           required
-                           className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                           value={newProduct.name}
-                           onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                         />
-                       </div>
-                       <div>
-                         <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
-                         <textarea 
-                           required
-                           rows={3}
-                           className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
-                           value={newProduct.description}
-                           onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                         />
-                       </div>
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                         <div>
-                           <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Price (₦)</label>
-                           <input 
-                             type="number" 
-                             required
-                             min="0"
-                             className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                             value={newProduct.price}
-                             onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                           />
-                         </div>
-                         <div>
-                           <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Category</label>
-                           <select 
-                             className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                             value={newProduct.category}
-                             onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                           >
-                              {CATEGORIES.filter(c => c !== 'All').map(c => (
-                                <option key={c} value={c}>{c}</option>
-                              ))}
-                           </select>
-                         </div>
-                       </div>
-                       
-                       <label className="flex items-center gap-3 cursor-pointer py-2">
-                         <input 
-                           type="checkbox" 
-                           className="w-5 h-5 text-emerald-500 rounded border-slate-300 focus:ring-emerald-500"
-                           checked={newProduct.requiresPrescription}
-                           onChange={(e) => setNewProduct({...newProduct, requiresPrescription: e.target.checked})}
-                         />
-                         <span className="text-sm font-bold uppercase tracking-widest text-slate-600">Requires Prescription</span>
-                       </label>
 
-                       <button 
-                         type="submit"
-                         className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
-                         disabled={isAddingProduct}
-                       >
-                         {isAddingProduct ? (
-                           <>
-                             <Loader2 className="w-5 h-5 animate-spin" />
-                             Adding Product...
-                           </>
-                         ) : (
-                           "Add to Marketplace"
-                         )}
-                       </button>
-                     </form>
-                   </div>
+                {!user ? (
+                  <div className="bg-white p-12 text-center rounded-3xl border-2 border-slate-100 shadow-sm">
+                    <h3 className="text-2xl font-black uppercase tracking-tight mb-4 text-emerald-900">Partner with Us</h3>
+                    <p className="text-slate-500 font-medium mb-8">Sign in with your vendor account to add products.</p>
+                    <button
+                      onClick={signIn}
+                      className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-emerald-500 transition-colors"
+                    >
+                      Sign In as Vendor
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border-2 border-slate-100 flex-1 flex flex-col justify-center space-y-6">
+                    <form onSubmit={handleAddProduct} className="space-y-5">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Product Name</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                          value={newProduct.name}
+                          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
+                        <textarea
+                          required
+                          rows={3}
+                          className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                          value={newProduct.description}
+                          onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Price (₦)</label>
+                          <input
+                            type="number"
+                            required
+                            min="0"
+                            className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                            value={newProduct.price}
+                            onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Category</label>
+                          <select
+                            className="w-full px-5 py-3 border-2 border-slate-200 rounded-xl font-medium text-slate-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                            value={newProduct.category}
+                            onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                          >
+                            {CATEGORIES.filter(c => c !== 'All').map(c => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-3 cursor-pointer py-2">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 text-emerald-500 rounded border-slate-300 focus:ring-emerald-500"
+                          checked={newProduct.requiresPrescription}
+                          onChange={(e) => setNewProduct({ ...newProduct, requiresPrescription: e.target.checked })}
+                        />
+                        <span className="text-sm font-bold uppercase tracking-widest text-slate-600">Requires Prescription</span>
+                      </label>
+
+                      <button
+                        type="submit"
+                        className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                        disabled={isAddingProduct}
+                      >
+                        {isAddingProduct ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Adding Product...
+                          </>
+                        ) : (
+                          "Add to Marketplace"
+                        )}
+                      </button>
+                    </form>
+                  </div>
                 )}
               </motion.div>
             )}
