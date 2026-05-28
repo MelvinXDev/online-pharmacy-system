@@ -227,8 +227,8 @@ export default function PharmacyPage() {
       setCart([]);
       setCheckoutFile(null);
     } catch (err: any) {
-      console.error(err);
-      alert("Failed to place order: " + err.message);
+      console.error("Order Error:", err);
+      alert("Failed to place order. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -356,7 +356,10 @@ export default function PharmacyPage() {
             <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-none mb-6">
               ORDER <br className="md:hidden" /> <span className="text-emerald-500">CONFIRMED.</span>
             </h2>
-            <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed mb-10">
+            <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed mb-4">
+              Thank you for shopping with us! Your order has been successfully placed.
+            </p>
+            <p className="text-sm md:text-base text-slate-400 font-medium leading-relaxed mb-10">
               Your prescription and medicines have been submitted. Our team is processing your order for immediate dispatch.
             </p>
             <button
