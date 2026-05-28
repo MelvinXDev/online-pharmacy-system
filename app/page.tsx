@@ -171,11 +171,32 @@ export default function PharmacyPage() {
     setIsSubmitting(true);
     try {
       let prescriptionUrl = '';
-      if (checkoutFile) {
-        const storageRef = ref(storage, `prescriptions/${user.uid}/${Date.now()}_${checkoutFile.name}`);
-        const uploadResult = await uploadBytes(storageRef, checkoutFile);
-        prescriptionUrl = await getDownloadURL(uploadResult.ref);
+      
+     if (checkoutFile) {
+      // const storageRef = ref(storage, `prescriptions/${user.uid}/${Date.now()}_${checkoutFile.name}`);
+      // const uploadResult = await uploadBytes(storageRef, checkoutFile);
+      // prescriptionUrl = await getDownloadURL(uploadResult.ref);
+
+      const formData = new FormData();
+      formData.append('image', checkoutFile);
+
+      
+      const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const imgbbData = await imgbbResponse.json();
+
+      if (!imgbbData.success) {
+        throw new Error("Failed to upload image to ImgBB.");
       }
+
+      prescriptionUrl = imgbbData.data.url;
+    } 
+
+      
+      
 
       const orderData: {
         userId: string;
