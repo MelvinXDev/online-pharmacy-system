@@ -221,7 +221,7 @@ export default function PharmacyPage() {
         orderData.prescriptionUrl = prescriptionUrl;
       }
 
-      await addDoc(collection(db, 'orders'), orderData);
+     // await addDoc(collection(db, 'orders'), orderData);
 
       setOrderPlaced(true);
       setCart([]);
